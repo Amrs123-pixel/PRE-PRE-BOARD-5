@@ -1,0 +1,10 @@
+[
+  {
+    "id": "elecs-preboard5",
+    "title": "ELECS Pre Board 5",
+    "subject": "Electronics Engineering",
+    "description": "100-question interactive reviewer with answer explanations.",
+    "count": 100,
+    "file": "decks/elecs-preboard5.json"
+  }
+]
