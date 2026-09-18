@@ -6,5 +6,13 @@
     "description": "100-question interactive reviewer with answer explanations.",
     "count": 100,
     "file": "decks/elecs-preboard5.json"
+  },
+  {
+    "id": "est-preboard5",
+    "title": "EST Preboard 5",
+    "subject": "Electronics Systems and Technologies",
+    "description": "99-card EST reviewer covering communications, networking, DSP, antennas, transmission lines, PLC/SCADA, and related topics.",
+    "count": 99,
+    "file": "decks/est-preboard5.json"
   }
 ]
