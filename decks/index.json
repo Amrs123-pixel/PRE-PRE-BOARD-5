@@ -1,0 +1,26 @@
+[
+  {
+    "id": "elecs-preboard5",
+    "title": "ELECS Pre Board 5",
+    "subject": "Electronics Engineering",
+    "description": "100-question interactive reviewer with answer explanations.",
+    "count": 100,
+    "file": "decks/elecs-preboard5.json"
+  },
+  {
+    "id": "est-preboard5",
+    "title": "EST Preboard 5",
+    "subject": "Electronics Systems and Technologies",
+    "description": "99-card EST reviewer covering communications, networking, DSP, antennas, transmission lines, PLC/SCADA, and related topics.",
+    "count": 99,
+    "file": "decks/est-preboard5.json"
+  },
+  {
+    "id": "elecs-refresher-exam-solving",
+    "title": "ELECS Refresher \u2014 Exam Solving",
+    "subject": "Electronics Engineering Problem Solving",
+    "description": "45 usable problem-solving cards with a dedicated iPad/Apple Pencil solution pad.",
+    "count": 45,
+    "file": "decks/elecs-refresher-exam-solving.json"
+  }
+]
