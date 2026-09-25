@@ -22,5 +22,13 @@
     "description": "45 usable problem-solving cards with a dedicated iPad/Apple Pencil solution pad.",
     "count": 45,
     "file": "decks/elecs-refresher-exam-solving.json"
+  },
+  {
+    "id": "math-preboard5",
+    "title": "Pre-Board 5 Mathematics",
+    "subject": "Engineering Mathematics",
+    "description": "100-question Math Pre-Board 5 deck with an iPad/Apple Pencil solving pad.",
+    "count": 100,
+    "file": "decks/math-preboard5.json"
   }
 ]
