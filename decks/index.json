@@ -30,5 +30,13 @@
     "description": "100-question Math Pre-Board 5 deck with an iPad/Apple Pencil solving pad.",
     "count": 100,
     "file": "decks/math-preboard5.json"
+  },
+  {
+    "id": "est-refresher-exam",
+    "title": "EST Refresher Exam",
+    "subject": "Electronics Systems and Technologies",
+    "description": "45-question EST refresher deck from the uploaded scan, with solutions and iPad/Apple Pencil solving pad.",
+    "count": 45,
+    "file": "decks/est-refresher-exam.json"
   }
 ]
