@@ -1,0 +1,898 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="dark">
+<title>Flashcard Library</title>
+<style>
+
+:root{--bg:#070b12;--panel:#0e1522;--panel2:#121b2b;--line:#253247;--text:#edf2f7;--muted:#94a3b8;--accent:#7c9cff;--good:#22c55e;--bad:#ef4444}*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at top,#111827 0,#070b12 45%);color:var(--text);font-family:Inter,system-ui,Segoe UI,Arial,sans-serif;min-height:100vh}button,input,textarea{font:inherit}.app{max-width:1240px;margin:auto;padding:22px}.top{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap}.brand h1{margin:0;font-size:clamp(26px,4vw,40px)}.brand p{margin:6px 0 0;color:var(--muted)}.search{min-width:min(360px,100%);padding:12px 14px;border-radius:12px;border:1px solid var(--line);background:#0b1220;color:var(--text)}.library{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:16px;margin-top:24px}.deck,.card,.ai{background:linear-gradient(180deg,#111a29,#0d1420);border:1px solid var(--line);border-radius:18px;box-shadow:0 20px 50px rgba(0,0,0,.25)}.deck{padding:18px}.deck h3{margin:0 0 7px}.deck p{color:var(--muted);min-height:48px}.meta{font-size:12px;color:#cbd5e1;margin-bottom:14px}.btn{border:1px solid var(--line);background:#131d2e;color:var(--text);padding:10px 13px;border-radius:11px;cursor:pointer;font-weight:800}.btn:hover{background:#1a2740}.btn.primary{background:#3047a3;border-color:#536df0}.hidden{display:none!important}.study{margin-top:18px;display:grid;grid-template-columns:minmax(0,1fr) 330px;gap:18px}.card,.ai{overflow:hidden}.bar{display:flex;justify-content:space-between;gap:10px;align-items:center;padding:14px;border-bottom:1px solid var(--line);flex-wrap:wrap}.stats{display:flex;gap:8px;flex-wrap:wrap}.pill{padding:7px 10px;border-radius:999px;background:#0a111d;border:1px solid var(--line);font-size:13px;font-weight:800}.slide{padding:14px;background:#090f18}.slide img{width:100%;display:block;border-radius:12px;border:1px solid #344157}.choices{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;padding:14px}.choice{padding:13px;border-radius:12px;border:1px solid var(--line);background:#121c2b;color:var(--text);font-weight:900;cursor:pointer}.choice.correct{background:rgba(34,197,94,.15);border-color:var(--good)}.choice.wrong{background:rgba(239,68,68,.15);border-color:var(--bad)}.explain{margin:0 14px 14px;padding:14px;border-radius:13px;border:1px solid var(--line);background:#090f18;line-height:1.55}.controls{padding:0 14px 14px;display:flex;gap:8px;flex-wrap:wrap}.ai{display:flex;flex-direction:column;min-height:620px}.aihead{padding:15px;border-bottom:1px solid var(--line)}.aihead h3{margin:0}.aihead p{margin:5px 0 0;color:var(--muted);font-size:12px}.chat{flex:1;padding:12px;overflow:auto;max-height:560px}.msg{padding:10px 12px;margin:8px 0;border-radius:12px;line-height:1.45;white-space:pre-wrap}.msg.user{background:#1c2840}.msg.ai{background:#0a111d;border:1px solid var(--line)}.ask{padding:12px;border-top:1px solid var(--line)}.ask textarea{width:100%;min-height:82px;resize:vertical;background:#0a111d;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:10px}.askrow{display:flex;gap:8px;margin-top:8px}.note{color:var(--muted);font-size:12px;margin-top:7px}.back{margin-bottom:12px}@media(max-width:900px){.study{grid-template-columns:1fr}.choices{grid-template-columns:repeat(2,1fr)}.ai{min-height:450px}}
+
+
+/* iPad / Apple Pencil solution pad */
+.solution-pad{
+  margin:0 14px 14px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  overflow:hidden;
+  background:#0a111d;
+}
+.solution-pad-head{
+  padding:12px 14px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  border-bottom:1px solid var(--line);
+}
+.draw-toolbar{
+  display:flex;
+  gap:8px;
+  align-items:center;
+  flex-wrap:wrap;
+  padding:10px 12px;
+  background:#0c1421;
+  border-bottom:1px solid var(--line);
+}
+.draw-tool.active{
+  background:#3047a3;
+  border-color:#6f82ff;
+}
+.pad-small{
+  padding:8px 10px;
+}
+.size-control{
+  color:var(--muted);
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:12px;
+  font-weight:700;
+  margin-left:auto;
+}
+.size-control input{
+  accent-color:#7c9cff;
+  width:120px;
+}
+.canvas-wrap{
+  height:360px;
+  min-height:260px;
+  background:#fff;
+  position:relative;
+}
+.solution-pad.expanded .canvas-wrap{
+  height:min(70vh,760px);
+}
+#solutionCanvas{
+  width:100%;
+  height:100%;
+  display:block;
+  background:#fff;
+  touch-action:none;
+  overscroll-behavior:contain;
+  cursor:crosshair;
+  user-select:none;
+  -webkit-user-select:none;
+  -webkit-touch-callout:none;
+}
+#solutionCanvas.eraser-cursor{
+  cursor:cell;
+}
+.draw-status{
+  padding:7px 12px 9px;
+  color:var(--muted);
+  font-size:11px;
+  border-top:1px solid var(--line);
+}
+.choice.ungraded{
+  background:rgba(245,158,11,.14);
+  border-color:#b7791f;
+  color:#fde68a;
+}
+@media(max-width:900px){
+  .canvas-wrap{height:330px}
+  .solution-pad.expanded .canvas-wrap{height:65vh}
+  .size-control{width:100%;margin-left:0}
+  .size-control input{flex:1}
+}
+
+
+/* ----- Flashcard Library 2.0 / exam score UI ----- */
+.deck-topline{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:10px}
+.deck-subject{font-size:11px;text-transform:uppercase;letter-spacing:.08em;color:#9fb2d0;font-weight:800}
+.deck-score{font-size:12px;font-weight:900;color:#c4b5fd;background:#151e31;border:1px solid var(--line);padding:5px 8px;border-radius:999px}
+.library-progress{height:7px;background:#090f18;border:1px solid var(--line);border-radius:999px;overflow:hidden;margin:14px 0 5px}
+.library-progress>div{height:100%;background:linear-gradient(90deg,#536df0,#9b87f5);border-radius:999px}
+.library-progress-label{font-size:11px;color:var(--muted);margin-bottom:13px}
+.score-pill{color:#c4b5fd;border-color:#4b4f82}
+.exam-progress-wrap{padding:8px 14px 0;background:#0b1320}
+.exam-progress-track{height:6px;border-radius:999px;overflow:hidden;background:#070c14;border:1px solid var(--line)}
+.exam-progress-fill{height:100%;width:0;background:linear-gradient(90deg,#536df0,#8b5cf6);transition:width .25s ease}
+.exam-progress-text{font-size:10px;color:var(--muted);padding:5px 1px 8px;text-align:right}
+.question-text-card{min-height:230px;display:flex;align-items:center;justify-content:center;padding:clamp(24px,6vw,58px);font-size:clamp(18px,2.4vw,27px);font-weight:760;line-height:1.55;text-align:left;background:radial-gradient(circle at top left,#162039,#0b111c 58%);border:1px solid #344157;border-radius:14px;white-space:normal}
+.source-answer-label{font-size:11px;letter-spacing:.13em;font-weight:900;color:#9b87f5;margin-bottom:9px}
+.source-answer{font-size:18px;line-height:1.55;font-weight:800;color:#e9e7ff}
+.self-grade{margin-top:18px;padding-top:15px;border-top:1px solid var(--line);display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.self-grade-label{width:100%;font-size:12px;color:var(--muted);font-weight:700}
+.grade-correct{border-color:#2f8f50!important;color:#bbf7d0!important}
+.grade-wrong{border-color:#984141!important;color:#fecaca!important}
+.graded-note{margin-top:16px;padding:9px 11px;border-radius:10px;font-weight:850}
+.graded-good{background:rgba(34,197,94,.12);color:#86efac}
+.graded-bad{background:rgba(239,68,68,.12);color:#fca5a5}
+.results-modal{position:fixed;inset:0;z-index:999;background:rgba(3,7,14,.78);backdrop-filter:blur(10px);display:flex;align-items:center;justify-content:center;padding:20px}
+.results-panel{width:min(520px,100%);background:linear-gradient(180deg,#151f32,#0c1320);border:1px solid #344157;border-radius:24px;padding:30px;box-shadow:0 35px 100px rgba(0,0,0,.55);text-align:center}
+.results-badge{font-size:11px;letter-spacing:.15em;font-weight:900;color:#a5b4fc}
+.results-panel h2{margin:8px 0 4px}
+.result-percent{font-size:72px;line-height:1;font-weight:1000;letter-spacing:-.05em;margin:20px 0;color:#e9e7ff}
+.result-breakdown{display:flex;gap:8px;justify-content:center;flex-wrap:wrap;color:#cbd5e1;font-size:13px}
+.result-breakdown span{padding:7px 10px;border:1px solid var(--line);border-radius:999px;background:#09111d}
+.result-message{color:var(--muted);margin:18px auto;max-width:390px;line-height:1.5}
+.results-actions{display:flex;gap:9px;justify-content:center;flex-wrap:wrap}
+@media(max-width:700px){
+  .question-text-card{min-height:200px;padding:24px 18px}
+  .result-percent{font-size:58px}
+}
+
+
+/* Text multiple-choice deck */
+.choices.text-mcq{
+  grid-template-columns:1fr;
+  gap:10px;
+}
+.choice.text-choice{
+  display:flex;
+  align-items:flex-start;
+  gap:12px;
+  text-align:left;
+  font-weight:650;
+  line-height:1.4;
+  padding:14px 16px;
+}
+.choice-letter{
+  flex:0 0 30px;
+  width:30px;
+  height:30px;
+  border-radius:9px;
+  display:inline-flex;
+  align-items:center;
+  justify-content:center;
+  background:#0a111d;
+  border:1px solid var(--line);
+  font-weight:950;
+}
+.choice-copy{
+  flex:1;
+  padding-top:4px;
+}
+.choice.text-choice.correct .choice-letter{
+  border-color:var(--good);
+  background:rgba(34,197,94,.18);
+}
+.choice.text-choice.wrong .choice-letter{
+  border-color:var(--bad);
+  background:rgba(239,68,68,.18);
+}
+.result-good{color:#86efac}
+.result-bad{color:#fca5a5}
+
+</style>
+</head>
+<body>
+<div class="app">
+  <section id="libraryView">
+    <div class="top">
+      <div class="brand">
+        <h1>Flashcard Library</h1>
+        <p>Your board-exam reviewers in one place.</p>
+      </div>
+      <input id="search" class="search" placeholder="Search decks..." autocomplete="off">
+    </div>
+
+    <div id="library" class="library"></div>
+  </section>
+
+  <section id="studyView" class="hidden">
+    <button id="backBtn" class="btn back">← Back to Library</button>
+
+    <div class="study">
+      <div class="card">
+        <div class="bar">
+          <div>
+            <strong id="deckTitle"></strong>
+            <div id="qTitle" class="note"></div>
+          </div>
+
+          <div class="stats">
+            <span class="pill">✓ <span id="correctCount">0</span></span>
+            <span class="pill">✕ <span id="wrongCount">0</span></span>
+            <span class="pill"><span id="answeredCount">0</span>/<span id="totalCount">0</span></span>
+          </div>
+        </div>
+
+        <div class="slide">
+          <img id="qImage" alt="Question">
+        </div>
+
+        <div id="choices" class="choices"></div>
+
+        <div id="explain" class="explain hidden"></div>
+
+        <div class="controls">
+          <button id="prevBtn" class="btn">← Previous</button>
+          <button id="nextBtn" class="btn primary">Next →</button>
+          <button id="revealBtn" class="btn">Reveal</button>
+          <button id="resetBtn" class="btn">Reset Deck</button>
+        </div>
+      </div>
+
+      <aside class="ai">
+        <div class="aihead">
+          <h3>AI Study Tutor</h3>
+          <p>Ask about the current question, formulas, concepts, or why an option is wrong.</p>
+        </div>
+
+        <div id="chat" class="chat">
+          <div class="msg ai">Open a question and ask me about it.</div>
+        </div>
+
+        <div class="ask">
+          <textarea id="askBox" placeholder="Example: Explain this using a calculator shortcut..."></textarea>
+
+          <div class="askrow">
+            <button id="askBtn" class="btn primary">Ask AI</button>
+            <button id="clearChatBtn" class="btn">Clear</button>
+          </div>
+
+          <div id="aiStatus" class="note"></div>
+        </div>
+      </aside>
+    </div>
+  </section>
+</div>
+
+<script>
+window.FLASHCARD_APP_CONFIG = window.FLASHCARD_APP_CONFIG || { aiEndpoint: "" };
+</script>
+<script>
+
+const LETTERS=["A","B","C","D"];
+let manifest=[],deck=null,idx=0;
+const $=id=>document.getElementById(id);
+
+async function init(){
+  manifest=await fetch("decks/index.json").then(r=>r.json());
+  ensureModernUI();
+  renderLibrary(manifest);
+
+  $("search").addEventListener("input",e=>{
+    const s=e.target.value.toLowerCase();
+    renderLibrary(manifest.filter(d=>(d.title+" "+d.subject+" "+d.description).toLowerCase().includes(s)));
+  });
+
+  $("backBtn").onclick=()=>{
+    $("studyView").classList.add("hidden");
+    $("libraryView").classList.remove("hidden");
+    renderLibrary(manifest);
+  };
+
+  $("prevBtn").onclick=()=>{ if(idx>0){idx--;renderQuestion();} };
+  $("nextBtn").onclick=()=>{ if(deck&&idx<deck.questions.length-1){idx++;renderQuestion();} };
+  $("revealBtn").onclick=reveal;
+  $("resetBtn").onclick=resetDeck;
+  $("askBtn").onclick=askAI;
+  $("clearChatBtn").onclick=()=>{$("chat").innerHTML='<div class="msg ai">Chat cleared.</div>';};
+
+  ensureDrawingPadUI();
+}
+
+function ensureModernUI(){
+  // Percentage pill in the existing stats bar.
+  const stats=document.querySelector(".stats");
+  if(stats && !$("percentageCount")){
+    const p=document.createElement("span");
+    p.className="pill score-pill";
+    p.innerHTML='Score: <span id="percentageCount">0%</span>';
+    stats.appendChild(p);
+  }
+
+  // Progress bar below the study header.
+  const bar=document.querySelector(".card .bar");
+  if(bar && !$("examProgress")){
+    const wrap=document.createElement("div");
+    wrap.className="exam-progress-wrap";
+    wrap.innerHTML='<div class="exam-progress-track"><div id="examProgress" class="exam-progress-fill"></div></div><div id="examProgressText" class="exam-progress-text">0% complete</div>';
+    bar.insertAdjacentElement("afterend",wrap);
+  }
+
+  // Text flashcard display for Q&A decks.
+  const slide=document.querySelector(".slide");
+  if(slide && !$("questionText")){
+    const q=document.createElement("div");
+    q.id="questionText";
+    q.className="question-text-card hidden";
+    slide.appendChild(q);
+  }
+
+  // Final result modal.
+  if(!$("finalResults")){
+    const modal=document.createElement("div");
+    modal.id="finalResults";
+    modal.className="results-modal hidden";
+    modal.innerHTML=`
+      <div class="results-panel">
+        <div class="results-badge">EXAM COMPLETE</div>
+        <h2 id="resultTitle">Final Result</h2>
+        <div id="resultPercent" class="result-percent">0%</div>
+        <div id="resultBreakdown" class="result-breakdown"></div>
+        <div id="resultMessage" class="result-message"></div>
+        <div class="results-actions">
+          <button id="reviewResultsBtn" class="btn primary">Review Answers</button>
+          <button id="closeResultsBtn" class="btn">Close</button>
+        </div>
+      </div>`;
+    document.body.appendChild(modal);
+    $("closeResultsBtn").onclick=()=>modal.classList.add("hidden");
+    $("reviewResultsBtn").onclick=()=>{modal.classList.add("hidden");idx=0;renderQuestion();};
+  }
+}
+
+function renderLibrary(items){
+  $("library").innerHTML=items.map(d=>{
+    const s=JSON.parse(localStorage.getItem("flashlib:"+d.id)||"{}");
+    const graded=Object.values(s).filter(r=>r && (r.correct===true || r.correct===false)).length;
+    const correct=Object.values(s).filter(r=>r && r.correct===true).length;
+    const pct=graded ? Math.round(correct/graded*100) : 0;
+    const complete=Math.min(100,Math.round(graded/d.count*100));
+    return `
+      <article class="deck">
+        <div class="deck-topline">
+          <span class="deck-subject">${esc(d.subject)}</span>
+          <span class="deck-score">${graded?`${pct}% score`:"Not started"}</span>
+        </div>
+        <h3>${esc(d.title)}</h3>
+        <div class="meta">${d.count} cards</div>
+        <p>${esc(d.description)}</p>
+        <div class="library-progress"><div style="width:${complete}%"></div></div>
+        <div class="library-progress-label">${graded}/${d.count} completed</div>
+        <button class="btn primary" onclick="openDeck('${d.file}')">${graded?"Continue":"Start"} deck</button>
+      </article>`;
+  }).join("");
+}
+
+async function openDeck(file){
+  deck=await fetch(file).then(r=>r.json());
+  idx=0;
+  $("libraryView").classList.add("hidden");
+  $("studyView").classList.remove("hidden");
+  $("deckTitle").textContent=deck.title;
+  $("totalCount").textContent=deck.questions.length;
+  $("finalResults").classList.add("hidden");
+  renderQuestion();
+}
+
+function progressKey(){return "flashlib:"+deck.id}
+function state(){return JSON.parse(localStorage.getItem(progressKey())||"{}")}
+function save(s){localStorage.setItem(progressKey(),JSON.stringify(s))}
+
+function isQAMode(q){return deck?.mode==="qa"}
+function isTextMCQ(q){return deck?.mode==="mcq_text" && !!q.question && !!q.choices}
+
+function renderQuestion(){
+  const q=deck.questions[idx], s=state(), r=s[q.n];
+  $("qTitle").textContent=`Question ${q.n} · Card ${idx+1} of ${deck.questions.length}`;
+
+  const qa=isQAMode(q);
+  const textMCQ=isTextMCQ(q);
+  const usesText=qa||textMCQ;
+  $("qImage").classList.toggle("hidden",usesText);
+  $("questionText").classList.toggle("hidden",!usesText);
+  $("choices").classList.toggle("text-mcq",textMCQ);
+
+  if(textMCQ){
+    $("questionText").textContent=q.question;
+    $("revealBtn").textContent="Reveal Answer";
+    $("choices").innerHTML=LETTERS.map(l=>{
+      let c="choice text-choice";
+      if(r&&l===q.correct)c+=" correct";
+      if(r&&r.answer===l&&l!==q.correct)c+=" wrong";
+      return `<button class="${c}" ${r?"disabled":""} onclick="answer('${l}')">
+        <span class="choice-letter">${l}</span><span class="choice-copy">${esc(q.choices[l])}</span>
+      </button>`;
+    }).join("");
+
+    if(r){
+      $("explain").classList.remove("hidden");
+      $("explain").innerHTML=`
+        <strong class="${r.correct?"result-good":"result-bad"}">${r.correct?"✓ Correct":"✕ Incorrect"}</strong><br>
+        Correct answer: <strong>${q.correct}. ${esc(q.choices[q.correct])}</strong><br><br>
+        ${esc(q.solution)}`;
+    }else{
+      $("explain").classList.add("hidden");
+      $("explain").innerHTML="";
+    }
+  }else if(qa){
+    $("questionText").textContent=q.question;
+    $("choices").innerHTML="";
+    $("revealBtn").textContent=(r&&r.revealed)?"Answer Revealed":"Reveal Answer";
+
+    if(r && r.revealed){
+      $("explain").classList.remove("hidden");
+      const gradeButtons=(r.correct===null || r.correct===undefined)
+        ? `<div class="self-grade">
+             <div class="self-grade-label">Did you get it right?</div>
+             <button class="btn grade-correct" onclick="selfGrade(true)">✓ Correct</button>
+             <button class="btn grade-wrong" onclick="selfGrade(false)">✕ Wrong</button>
+           </div>`
+        : `<div class="graded-note ${r.correct?"graded-good":"graded-bad"}">${r.correct?"✓ Marked correct":"✕ Marked wrong"}</div>`;
+
+      $("explain").innerHTML=`
+        <div class="source-answer-label">SOURCE ANSWER</div>
+        <div class="source-answer">${esc(q.answer)}</div>
+        ${gradeButtons}`;
+    }else{
+      $("explain").classList.add("hidden");
+      $("explain").innerHTML="";
+    }
+  }else{
+    $("qImage").src="data:image/jpeg;base64,"+q.img;
+    $("revealBtn").textContent="Reveal";
+    $("choices").innerHTML=LETTERS.map(l=>{
+      let c="choice";
+      if(r&&q.correct&&l===q.correct)c+=" correct";
+      if(r&&r.answer===l&&q.correct&&l!==q.correct)c+=" wrong";
+      if(r&&!q.correct&&r.answer===l)c+=" ungraded";
+      return `<button class="${c}" ${r?"disabled":""} onclick="answer('${l}')">${l}</button>`;
+    }).join("");
+
+    if(r){
+      $("explain").classList.remove("hidden");
+      if(q.correct){
+        $("explain").innerHTML=`<strong>${r.correct?"✓ Correct":"✕ Incorrect"}</strong><br>
+          Correct answer: <strong>${q.correct}</strong><br><br>${esc(q.solution)}`;
+      }else{
+        $("explain").innerHTML=`<strong>⚠ Not graded</strong><br>
+          The printed source/data do not support one clean A–D answer.<br><br>${esc(q.solution)}`;
+      }
+    }else{
+      $("explain").classList.add("hidden");
+      $("explain").innerHTML="";
+    }
+  }
+
+  $("prevBtn").disabled=idx===0;
+  $("nextBtn").disabled=idx===deck.questions.length-1;
+  updateStats();
+  configureDrawingPadForQuestion();
+}
+
+function answer(letter){
+  const q=deck.questions[idx],s=state();
+  if(s[q.n])return;
+  s[q.n]={answer:letter,correct:q.correct?letter===q.correct:null,revealed:false};
+  save(s);
+  renderQuestion();
+  maybeFinish();
+}
+
+function reveal(){
+  const q=deck.questions[idx],s=state();
+
+  if(isQAMode(q)){
+    const existing=s[q.n]||{};
+    if(existing.revealed)return;
+    s[q.n]={...existing,answer:null,correct:null,revealed:true};
+    save(s);
+    renderQuestion();
+    return;
+  }
+
+  if(s[q.n])return;
+  s[q.n]={answer:null,correct:q.correct?false:null,revealed:true};
+  save(s);
+  renderQuestion();
+  maybeFinish();
+}
+
+function selfGrade(value){
+  const q=deck.questions[idx],s=state();
+  const r=s[q.n]||{revealed:true};
+  r.correct=!!value;
+  r.revealed=true;
+  s[q.n]=r;
+  save(s);
+  renderQuestion();
+  maybeFinish();
+}
+
+function scoreData(){
+  if(!deck)return {c:0,w:0,a:0,pct:0};
+  const s=state();
+  let c=0,w=0,a=0;
+  deck.questions.forEach(q=>{
+    const r=s[q.n];
+    if(!r)return;
+    if(r.correct===true){c++;a++}
+    else if(r.correct===false){w++;a++}
+  });
+  return {c,w,a,pct:a?Math.round(c/a*100):0};
+}
+
+function updateStats(){
+  if(!deck)return;
+  const x=scoreData();
+  $("correctCount").textContent=x.c;
+  $("wrongCount").textContent=x.w;
+  $("answeredCount").textContent=x.a;
+  if($("percentageCount"))$("percentageCount").textContent=x.pct+"%";
+
+  const complete=Math.round((x.a/deck.questions.length)*100);
+  if($("examProgress"))$("examProgress").style.width=complete+"%";
+  if($("examProgressText"))$("examProgressText").textContent=`${complete}% complete · ${x.a}/${deck.questions.length} graded`;
+}
+
+function maybeFinish(){
+  const x=scoreData();
+  if(x.a!==deck.questions.length)return;
+
+  $("resultTitle").textContent=deck.title;
+  $("resultPercent").textContent=x.pct+"%";
+  $("resultBreakdown").innerHTML=`<span>✓ ${x.c} correct</span><span>✕ ${x.w} wrong</span><span>${x.a}/${deck.questions.length} completed</span>`;
+  $("resultMessage").textContent =
+    x.pct>=90 ? "Excellent result." :
+    x.pct>=75 ? "Good result. Review the missed cards to push the score higher." :
+    x.pct>=60 ? "You have a workable base. Focus your next review on the missed cards." :
+                "Review the missed cards, then retake the deck.";
+  $("finalResults").classList.remove("hidden");
+}
+
+function resetDeck(){
+  const keepDrawings=deck?.drawingPad!==false;
+  const msg=keepDrawings
+    ?"Reset answer progress for this deck? Your handwritten solution-pad drawings will be kept."
+    :"Reset all answer progress and the score for this deck?";
+  if(confirm(msg)){
+    localStorage.removeItem(progressKey());
+    $("finalResults").classList.add("hidden");
+    renderQuestion();
+  }
+}
+
+async function askAI(){
+  if(!deck)return;
+  const endpoint=(window.FLASHCARD_APP_CONFIG||{}).aiEndpoint;
+  const prompt=$("askBox").value.trim();
+  if(!prompt)return;
+
+  addMsg("user",prompt);
+  $("askBox").value="";
+
+  if(!endpoint){
+    addMsg("ai","AI is not connected yet. Deploy the backend and put its URL in config.js.");
+    $("aiStatus").textContent="Backend not configured.";
+    return;
+  }
+
+  const q=deck.questions[idx];
+  $("aiStatus").textContent="Thinking...";
+  try{
+    const res=await fetch(endpoint,{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({
+        question:prompt,
+        deckTitle:deck.title,
+        currentQuestion:{
+          number:q.n,
+          question:q.question||null,
+          correct:q.correct||null,
+          answer:q.answer||null,
+          solution:q.solution||null
+        }
+      })
+    });
+    const data=await res.json();
+    if(!res.ok)throw new Error(data.error||"Request failed");
+    addMsg("ai",data.answer||"No answer returned.");
+    $("aiStatus").textContent="";
+  }catch(e){
+    addMsg("ai","AI request failed: "+e.message);
+    $("aiStatus").textContent="Connection error.";
+  }
+}
+
+function addMsg(type,text){
+  const d=document.createElement("div");
+  d.className="msg "+type;
+  d.textContent=text;
+  $("chat").appendChild(d);
+  $("chat").scrollTop=$("chat").scrollHeight;
+}
+
+function esc(s){
+  return String(s??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#039;"}[c]));
+}
+
+/* ---------------- iPad / Apple Pencil solution pad ---------------- */
+
+
+let drawState={
+  canvas:null,ctx:null,tool:"pen",size:4,drawing:false,current:null,
+  strokes:[],redo:[],resizeObserver:null
+};
+
+function ensureDrawingPadUI(){
+  if(document.getElementById("solutionPad")) return;
+
+  const choices=$("choices");
+  const panel=document.createElement("section");
+  panel.id="solutionPad";
+  panel.className="solution-pad hidden";
+  panel.innerHTML=`
+    <div class="solution-pad-head">
+      <div>
+        <strong>✍️ Your Solution Pad</strong>
+        <div class="note">Apple Pencil, stylus, mouse, and finger supported. Your work is saved per question on this device.</div>
+      </div>
+      <button id="padExpandBtn" class="btn pad-small" type="button">Expand</button>
+    </div>
+
+    <div class="draw-toolbar" role="toolbar" aria-label="Drawing tools">
+      <button id="penBtn" class="btn draw-tool active" type="button">Pen</button>
+      <button id="eraserBtn" class="btn draw-tool" type="button">Eraser</button>
+      <button id="undoDrawBtn" class="btn pad-small" type="button">Undo</button>
+      <button id="redoDrawBtn" class="btn pad-small" type="button">Redo</button>
+      <button id="clearDrawBtn" class="btn pad-small" type="button">Clear</button>
+      <label class="size-control">Pen size
+        <input id="penSize" type="range" min="2" max="14" value="4" step="1">
+      </label>
+    </div>
+
+    <div class="canvas-wrap">
+      <canvas id="solutionCanvas" aria-label="Handwriting solution canvas"></canvas>
+    </div>
+    <div id="drawStatus" class="draw-status">Ready to write.</div>
+  `;
+  choices.insertAdjacentElement("afterend",panel);
+
+  drawState.canvas=document.getElementById("solutionCanvas");
+  drawState.ctx=drawState.canvas.getContext("2d",{alpha:false});
+
+  document.getElementById("penBtn").onclick=()=>setDrawTool("pen");
+  document.getElementById("eraserBtn").onclick=()=>setDrawTool("eraser");
+  document.getElementById("undoDrawBtn").onclick=undoDrawing;
+  document.getElementById("redoDrawBtn").onclick=redoDrawing;
+  document.getElementById("clearDrawBtn").onclick=clearDrawing;
+  document.getElementById("penSize").oninput=e=>{
+    drawState.size=Number(e.target.value);
+  };
+  document.getElementById("padExpandBtn").onclick=togglePadExpand;
+
+  const c=drawState.canvas;
+  c.addEventListener("pointerdown",pointerDown);
+  c.addEventListener("pointermove",pointerMove);
+  c.addEventListener("pointerup",pointerUp);
+  c.addEventListener("pointercancel",pointerUp);
+  c.addEventListener("contextmenu",e=>e.preventDefault());
+
+  if(window.ResizeObserver){
+    drawState.resizeObserver=new ResizeObserver(()=>resizeCanvasAndRedraw());
+    drawState.resizeObserver.observe(c.parentElement);
+  }else{
+    window.addEventListener("resize",resizeCanvasAndRedraw);
+  }
+}
+
+function configureDrawingPadForQuestion(){
+  const panel=document.getElementById("solutionPad");
+  if(!panel || !deck) return;
+
+  if(deck.drawingPad){
+    panel.classList.remove("hidden");
+    loadDrawing();
+    requestAnimationFrame(resizeCanvasAndRedraw);
+  }else{
+    panel.classList.add("hidden");
+  }
+}
+
+function drawingKey(){
+  const q=deck.questions[idx];
+  return `flashdraw:v2:${deck.id}:${q.n}`;
+}
+
+function loadDrawing(){
+  drawState.redo=[];
+  try{
+    const saved=JSON.parse(localStorage.getItem(drawingKey())||"[]");
+    drawState.strokes=Array.isArray(saved)?saved:[];
+  }catch{
+    drawState.strokes=[];
+  }
+  updateDrawButtons();
+  redrawCanvas();
+}
+
+function saveDrawing(){
+  try{
+    localStorage.setItem(drawingKey(),JSON.stringify(drawState.strokes));
+    setDrawStatus("Saved automatically.");
+  }catch(e){
+    setDrawStatus("Storage is full. Clear older drawings or browser site data.");
+  }
+}
+
+function setDrawTool(tool){
+  drawState.tool=tool;
+  document.getElementById("penBtn").classList.toggle("active",tool==="pen");
+  document.getElementById("eraserBtn").classList.toggle("active",tool==="eraser");
+  drawState.canvas.classList.toggle("eraser-cursor",tool==="eraser");
+  setDrawStatus(tool==="pen"?"Pen selected.":"Eraser selected.");
+}
+
+function normalizedPoint(e){
+  const r=drawState.canvas.getBoundingClientRect();
+  return {
+    x:(e.clientX-r.left)/r.width,
+    y:(e.clientY-r.top)/r.height,
+    p:(typeof e.pressure==="number" && e.pressure>0)?e.pressure:0.5
+  };
+}
+
+function pointerDown(e){
+  if(!deck || !deck.drawingPad) return;
+  if(e.pointerType==="mouse" && e.button!==0) return;
+
+  e.preventDefault();
+  drawState.canvas.setPointerCapture?.(e.pointerId);
+  drawState.drawing=true;
+  drawState.redo=[];
+
+  drawState.current={
+    tool:drawState.tool,
+    size:drawState.size,
+    points:[normalizedPoint(e)]
+  };
+  drawState.strokes.push(drawState.current);
+
+  redrawCanvas();
+  updateDrawButtons();
+}
+
+function pointerMove(e){
+  if(!drawState.drawing || !drawState.current) return;
+  e.preventDefault();
+
+  const events=e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+  for(const ev of events){
+    drawState.current.points.push(normalizedPoint(ev));
+  }
+  redrawCanvas();
+}
+
+function pointerUp(e){
+  if(!drawState.drawing) return;
+  e.preventDefault();
+  drawState.drawing=false;
+  drawState.current=null;
+  try{ drawState.canvas.releasePointerCapture?.(e.pointerId); }catch{}
+  saveDrawing();
+  updateDrawButtons();
+}
+
+function canvasMetrics(){
+  const c=drawState.canvas;
+  const rect=c.getBoundingClientRect();
+  return {w:rect.width,h:rect.height,dpr:Math.max(1,window.devicePixelRatio||1)};
+}
+
+function resizeCanvasAndRedraw(){
+  if(!drawState.canvas || document.getElementById("solutionPad")?.classList.contains("hidden")) return;
+  const {w,h,dpr}=canvasMetrics();
+  if(w<10 || h<10) return;
+  const nw=Math.round(w*dpr), nh=Math.round(h*dpr);
+  if(drawState.canvas.width!==nw || drawState.canvas.height!==nh){
+    drawState.canvas.width=nw;
+    drawState.canvas.height=nh;
+  }
+  redrawCanvas();
+}
+
+function redrawCanvas(){
+  const c=drawState.canvas;
+  const ctx=drawState.ctx;
+  if(!c || !ctx) return;
+
+  const rect=c.getBoundingClientRect();
+  if(rect.width<1 || rect.height<1) return;
+
+  const sx=c.width/rect.width, sy=c.height/rect.height;
+  ctx.setTransform(1,0,0,1,0,0);
+  ctx.fillStyle="#ffffff";
+  ctx.fillRect(0,0,c.width,c.height);
+  ctx.lineCap="round";
+  ctx.lineJoin="round";
+
+  for(const stroke of drawState.strokes){
+    const pts=stroke.points||[];
+    if(!pts.length) continue;
+
+    ctx.strokeStyle=stroke.tool==="eraser"?"#ffffff":"#111827";
+    const base=Math.max(1,Number(stroke.size)||4);
+
+    if(pts.length===1){
+      const p=pts[0];
+      ctx.beginPath();
+      ctx.arc(p.x*c.width,p.y*c.height,(base*sx)/2,0,Math.PI*2);
+      ctx.fillStyle=ctx.strokeStyle;
+      ctx.fill();
+      continue;
+    }
+
+    for(let i=1;i<pts.length;i++){
+      const a=pts[i-1], b=pts[i];
+      const pressure=stroke.tool==="pen" ? Math.max(.45,(a.p+b.p)/2) : 1;
+      ctx.lineWidth=base*sx*(stroke.tool==="pen" ? (0.75+0.5*pressure) : 2.4);
+      ctx.beginPath();
+      ctx.moveTo(a.x*c.width,a.y*c.height);
+      ctx.lineTo(b.x*c.width,b.y*c.height);
+      ctx.stroke();
+    }
+  }
+}
+
+function undoDrawing(){
+  if(!drawState.strokes.length) return;
+  drawState.redo.push(drawState.strokes.pop());
+  redrawCanvas();
+  saveDrawing();
+  updateDrawButtons();
+}
+
+function redoDrawing(){
+  if(!drawState.redo.length) return;
+  drawState.strokes.push(drawState.redo.pop());
+  redrawCanvas();
+  saveDrawing();
+  updateDrawButtons();
+}
+
+function clearDrawing(){
+  if(!drawState.strokes.length) return;
+  if(!confirm("Clear your handwritten solution for this question?")) return;
+  drawState.redo.push(...drawState.strokes.splice(0));
+  redrawCanvas();
+  saveDrawing();
+  updateDrawButtons();
+}
+
+function updateDrawButtons(){
+  const u=document.getElementById("undoDrawBtn");
+  const r=document.getElementById("redoDrawBtn");
+  if(u) u.disabled=!drawState.strokes.length;
+  if(r) r.disabled=!drawState.redo.length;
+}
+
+function togglePadExpand(){
+  const panel=document.getElementById("solutionPad");
+  panel.classList.toggle("expanded");
+  const expanded=panel.classList.contains("expanded");
+  document.getElementById("padExpandBtn").textContent=expanded?"Collapse":"Expand";
+  requestAnimationFrame(resizeCanvasAndRedraw);
+  if(expanded) panel.scrollIntoView({behavior:"smooth",block:"start"});
+}
+
+let statusTimer=null;
+function setDrawStatus(text){
+  const el=document.getElementById("drawStatus");
+  if(!el) return;
+  el.textContent=text;
+  clearTimeout(statusTimer);
+  statusTimer=setTimeout(()=>{ if(el) el.textContent="Ready to write."; },1800);
+}
+
+init();
+
+</script>
+</body>
+</html>
