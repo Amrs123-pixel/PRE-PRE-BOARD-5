@@ -1,0 +1,50 @@
+[
+  {
+    "id": "elecs-preboard5",
+    "title": "ELECS Pre Board 5",
+    "subject": "Electronics Engineering",
+    "description": "100-question interactive reviewer with answer explanations.",
+    "count": 100,
+    "file": "decks/elecs-preboard5.json"
+  },
+  {
+    "id": "est-preboard5",
+    "title": "EST Preboard 5",
+    "subject": "Electronics Systems and Technologies",
+    "description": "99-card EST reviewer covering communications, networking, DSP, antennas, transmission lines, PLC/SCADA, and related topics.",
+    "count": 99,
+    "file": "decks/est-preboard5.json"
+  },
+  {
+    "id": "elecs-refresher-exam-solving",
+    "title": "ELECS Refresher — Exam Solving",
+    "subject": "Electronics Engineering Problem Solving",
+    "description": "45 usable problem-solving cards with a dedicated iPad/Apple Pencil solution pad.",
+    "count": 45,
+    "file": "decks/elecs-refresher-exam-solving.json"
+  },
+  {
+    "id": "math-preboard5",
+    "title": "Pre-Board 5 Mathematics",
+    "subject": "Engineering Mathematics",
+    "description": "100-question Math Pre-Board 5 deck with an iPad/Apple Pencil solving pad.",
+    "count": 100,
+    "file": "decks/math-preboard5.json"
+  },
+  {
+    "id": "est-refresher-exam",
+    "title": "EST Refresher Exam",
+    "subject": "Electronics Systems and Technologies",
+    "description": "45-question EST refresher deck from the uploaded scan, with solutions and iPad/Apple Pencil solving pad.",
+    "count": 45,
+    "file": "decks/est-refresher-exam.json"
+  },
+  {
+    "id": "final-coaching-math-2",
+    "title": "MT-FC1 — Final Coaching Math",
+    "subject": "Engineering Mathematics Final Coaching",
+    "description": "52 multiple-choice questions from MT-FC1. No solution pad; includes final percentage scoring.",
+    "count": 52,
+    "file": "decks/final-coaching-math-2.json"
+  }
+]
